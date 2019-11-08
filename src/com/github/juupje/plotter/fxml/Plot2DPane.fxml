@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+
+
+<AnchorPane fx:id="pane" layoutX="10.0" layoutY="10.0" onMouseDragged="#onMouseDrag" onMousePressed="#onMousePress" onMouseReleased="#onMouseRelease" onScroll="#onScroll" onScrollStarted="#onScrollStarted" onZoom="#onZoom" onZoomFinished="#onZoomFinished" onZoomStarted="#onZoomStarted" prefHeight="400.0" prefWidth="400.0" style="-fx-background-color: rgb(35,39,50);" xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml/">
+	<!-- TODO Add Nodes -->
+</AnchorPane>
