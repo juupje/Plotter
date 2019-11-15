@@ -24,7 +24,7 @@ public class PlotScreen extends Application {
 			Plotter.setPlotScreen(this);
 			this.stage = stage;
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(PlotScreen.class.getResource("/fxml/GraphView.fxml"));
+			loader.setLocation(PlotScreen.class.getResource("/com/github/juupje/plotter/fxml/GraphView.fxml"));
 			loader.setController(controller = new GraphViewController());
 			Scene scene = new Scene(loader.load(),600,600);
 			stage.setScene(scene);
@@ -64,8 +64,19 @@ public class PlotScreen extends Application {
 		if(!isOpen)
 			create();
 		Platform.runLater(() -> {
-			controller.addPlotPane();
-			controller.getSelected().add(var, begin, end, dynamic);
+			controller.addPlotPane().add(var, begin, end, dynamic);
+			synchronized(lock) {
+				lock.notify();
+			}
+		});
+		waitForLock();
+	}
+	
+	public void anim(Variable var, String variable, double min, double max, double time) {
+		if(!isOpen)
+			create();
+		Platform.runLater(() -> {
+			controller.getSelected().addAnim(var, variable, min, max, time);
 			synchronized(lock) {
 				lock.notify();
 			}

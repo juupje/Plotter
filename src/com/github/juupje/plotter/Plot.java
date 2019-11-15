@@ -34,7 +34,6 @@ public class Plot extends Pane {
 		scaleYProperty().addListener((obj, oldVal, newVal) -> path.setStrokeWidth(-2/newVal.doubleValue()));
 		
 		xInc = (xMax-xMin)/(axes.getWidth()/4);
-		System.out.println(xInc + " : " + xInc*xUnit);
 		plotYRangeLength = axes.maxY()-axes.minY();
 		drawPath(f, xMin, xMax, xInc);
 		
@@ -58,7 +57,13 @@ public class Plot extends Pane {
 		getChildren().setAll(path);
 	}
 	
+	protected void redrawPath() {
+		path.getElements().clear();
+		drawPath(func, xMin, xMax, xInc);
+	}
+	
 	private void drawPath(Function<Double, Double> f, double xMin, double xMax, double xInc) {
+		if(f == null) return;
 		double x = xMin;
 		double y = Double.NaN, lastY = Double.NaN;
 		while(x <= xMax) {
@@ -85,8 +90,7 @@ public class Plot extends Pane {
 		xUnit = unitX;
 		yUnit = unitY;
 		plotYRangeLength = axes.maxY()-axes.minY();
-		path.getElements().clear();
-		drawPath(func,xMin, xMax, xInc);
+		redrawPath();
 	}
 	
 	public Function<Double, Double> getFunction() {
@@ -107,7 +111,6 @@ public class Plot extends Pane {
 
 	public void updateFunction(Function<Double, Double> function) {
 		func = function;
-		path.getElements().clear();
-		drawPath(function, xMin, xMax, xInc);
+		redrawPath();
 	}
 }

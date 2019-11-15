@@ -11,6 +11,7 @@ import com.github.juupje.calculator.main.Variable;
 import com.github.juupje.calculator.mathobjects.MFunction;
 import com.github.juupje.calculator.mathobjects.MReal;
 import com.github.juupje.calculator.mathobjects.MathObject;
+import com.github.juupje.plotter.Animation;
 import com.github.juupje.plotter.CartesianAxes;
 import com.github.juupje.plotter.ColorIterator;
 import com.github.juupje.plotter.Plot;
@@ -20,6 +21,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.ZoomEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
 
 public class Plot2DPaneController {
 
@@ -50,6 +52,18 @@ public class Plot2DPaneController {
 		if(dynamic) makeDynamic(var, plt);
 		if (plt != null)
 			objectsInGraph.put(var, plt);
+	}
+	
+	public void addAnim(Variable var, String variable, double min, double max, double time) {
+		remove(var);
+		Color c = colors.next();
+		double xmin = axes.minX();
+		double xmax = axes.maxX();
+		MFunction func = (MFunction) var.get();
+		Animation anim = new Animation(func, variable, min, max, time, xmin, xmax, axes.xUnitDist, axes.yUnitDist, axes, c);
+		axes.addPlot(anim);
+		objectsInGraph.put(var, anim);
+		anim.start();
 	}
 	
 	public void add(Variable var, double begin, double end, boolean dynamic) {
@@ -88,9 +102,8 @@ public class Plot2DPaneController {
 		throw new IllegalArgumentException("Only functions can be plotted, got " + mo.getClass().getSimpleName());
 	}
 
-	@SuppressWarnings("unlikely-arg-type")
 	public boolean remove(String s) {
-		return axes.removePlot(objectsInGraph.remove(s));
+		return axes.removePlot(objectsInGraph.remove(new Variable(s)));
 	}
 	
 	public boolean remove(Variable var) {

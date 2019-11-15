@@ -196,12 +196,16 @@ public class CartesianAxes extends Pane {
 		return getChildren().remove(plt);
 	}
 	
-	public Plot addPlot(Function<Double, Double> f, Color color) {
-		Plot plot = new Plot(f, minX(), maxX(), xUnitDist, yUnitDist, this, color);
+	public void addPlot(Plot plot) {
 		getChildren().add(plot);
 		plot.setLayoutX(originX);
 		plot.setLayoutY(originY);
 		plot.setContentClip(minX(), minY(), maxX()-minX(), maxY()-minY());
+	}
+	
+	public Plot addPlot(Function<Double, Double> f, Color color) {
+		Plot plot = new Plot(f, minX(), maxX(), xUnitDist, yUnitDist, this, color);
+		addPlot(plot);
 		return plot;
 	}
 	

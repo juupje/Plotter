@@ -22,8 +22,9 @@ public class GraphViewController {
 		
 	}
 	
-	public void addPlotPane() {
-		tabPane.getTabs().add(selected = new PlotTab());		
+	public Plot2DPaneController addPlotPane() {
+		tabPane.getTabs().add(selected = new PlotTab());
+		return select(tabPane.getTabs().size()-1);
 	}
 	
 	public boolean hasPlots() {
@@ -32,6 +33,7 @@ public class GraphViewController {
 	
 	public Plot2DPaneController select(int index) {
 		selected = (PlotTab) tabPane.getTabs().get(index);
+		tabPane.getSelectionModel().clearAndSelect(index);
 		return selected.getController();
 	}
 	
@@ -53,7 +55,7 @@ public class GraphViewController {
 			id = idGenerator.getAndIncrement();
 			try {
 				FXMLLoader loader = new FXMLLoader();
-				loader.setLocation(GraphViewController.class.getResource("/fxml/Plot2DPane.fxml"));
+				loader.setLocation(GraphViewController.class.getResource("/com/github/juupje/plotter/fxml/Plot2DPane.fxml"));
 				loader.setController(controller = new Plot2DPaneController());
 				setContent(loader.load());
 				setText("Plot " + id);

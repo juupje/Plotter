@@ -1,45 +1,48 @@
 package com.github.juupje.plotter;
 
+import com.github.juupje.calculator.commands.Command;
+import com.github.juupje.calculator.commands.Commands;
 import com.github.juupje.calculator.helpers.ErrorHandler;
 import com.github.juupje.calculator.helpers.IOHandler;
 import com.github.juupje.calculator.helpers.Shape;
 import com.github.juupje.calculator.main.Calculator;
-import com.github.juupje.calculator.main.Command;
 import com.github.juupje.calculator.main.Parser;
 import com.github.juupje.calculator.main.Variable;
 import com.github.juupje.calculator.main.Variables;
+import com.github.juupje.calculator.main.VectorParser;
 import com.github.juupje.calculator.main.plugins.Plugin;
 import com.github.juupje.calculator.mathobjects.MFunction;
 import com.github.juupje.calculator.mathobjects.MReal;
+import com.github.juupje.calculator.mathobjects.MVector;
 import com.github.juupje.calculator.mathobjects.MathObject;
+import com.github.juupje.calculator.settings.Setting;
+import com.github.juupje.calculator.settings.Settings;
+import com.github.juupje.calculator.settings.SettingsHandler;
 
 import javafx.application.Platform;
 
 public class Plotter implements Plugin {
 
 	private static PlotScreen plotScreen;
+	public static Setting SETTING_ANIM_TIME;
 	
 	@Override
 	public void run() {
-		Command.insertCommand("plot", new PlotCommand(false, false));
-		Command.insertCommand("addplot", new PlotCommand(true, false));
-		Command.insertCommand("delplot", new Command() {
-			@Override
-			public void process(String s) {
-				if(!plotScreen.controller.getSelected().remove(s))
-					throw new IllegalArgumentException("No known plot in selected pane with name '" + s + "'");
-			}
-		});
-		Command.insertCommand("dplot", new PlotCommand(false, true));
-		Command.insertCommand("adddplot", new PlotCommand(true, true));
-		Command.insertCommand("selectplot", new Command() {
-			@Override
-			public void process(String s) {
+		Commands.insertCommand("plot", new PlotCommand(false, false));
+		Commands.insertCommand("addplot", new PlotCommand(true, false));
+		Commands.insertCommand("dplot", new PlotCommand(false, true));
+		Commands.insertCommand("adddplot", new PlotCommand(true, true));
+		
+		Commands.insertCommand("delplot", arg -> {
+				if(!plotScreen.controller.getSelected().remove(arg))
+					throw new IllegalArgumentException("No known plot in selected pane with name '" + arg + "'");
+			});
+		Commands.insertCommand("selectplot", arg -> {
 				int index = 0;
 				try {
-					index = Integer.valueOf(s);
+					index = Integer.valueOf(arg);
 				} catch(NumberFormatException e) {
-					MathObject obj = new Parser(s).evaluate();
+					MathObject obj = new Parser(arg).evaluate();
 					if(obj instanceof MReal && ((MReal) obj).isInteger()) {
 						index = (int)((MReal) obj).getValue();
 					} else {
@@ -50,8 +53,65 @@ public class Plotter implements Plugin {
 				if(index > plotScreen.controller.getTabCount())
 					throw new IllegalArgumentException("Can't select plot " + index + ": there are only " + plotScreen.controller.getTabCount() + " plots.");
 				plotScreen.controller.select(index);
+			});
+		Commands.insertCommand("anim", arg -> {
+			String[] args = Parser.getArguments(arg);
+			//check argument length
+			if(!(args.length == 2 || args.length==3))
+				throw new IllegalArgumentException("Expected 2 or 3 arguments, got " + args.length);
+			//check if plot already exists (it should)
+			if(plotScreen.controller.getSelected().getPlot(args[0])==null)
+				throw new IllegalArgumentException("No plot with name '" + args[0] + "' was found.");
+	
+			MFunction func = (MFunction) Variables.get(args[0]);
+			
+			//Find the variable to be animated, and check whether the function depends on it, and whether it is a real scalar.
+			int index = args[1].indexOf("=");
+			if(index==-1)
+				throw new IllegalArgumentException("Expected '=' in second argument. See help(anim).");
+			String varname  = args[1].substring(0, index);
+			Variable var = new Variable(varname);
+			if(!func.getDependencies().contains(var))
+				throw new IllegalArgumentException("Function " + args[0] + " does not depend on " + varname + ".");
+			if(!(var.get() instanceof MReal))
+				throw new IllegalArgumentException("Variable " + var.getName() + " is not a real scalar.");
+			
+			//find the range of the variable to be animated
+			MathObject mo = new VectorParser(args[1].substring(index+1)).parse().evaluate();
+			if(!(mo instanceof MVector) || ((MVector) mo).size()!=2)
+				throw new IllegalArgumentException("Expected vector of length 2 after '=' in second argument, got " + mo.getClass().getSimpleName());
+			MVector v = (MVector) mo;
+			if(!(v.get(0) instanceof MReal) || !(v.get(1) instanceof MReal))
+				throw new IllegalArgumentException("Animation bounds should be real numbers, got " + v.get(0) + " and " + v.get(1));
+			double begin = ((MReal) ((MVector) mo).get(0)).getValue();
+			double end = ((MReal) ((MVector) mo).get(1)).getValue();
+			
+			//find the duration of one animation cycle
+			double time = Settings.getDouble(SETTING_ANIM_TIME);
+			if(args.length==3) {
+				try {
+					time = Double.valueOf(args[2]);
+				} catch(NumberFormatException e) {
+					Calculator.ioHandler.err("Expected numeric value in 3rd argument. Got " + args[2] + ", using default time.");
+				}
+			}
+			plotScreen.anim(new Variable(args[0]), varname, begin, end, time);
+		});
+		Commands.insertCommand("stop", arg -> {
+			try {
+				Plot plt = plotScreen.controller.getSelected().getPlot(arg);
+				((Animation) plt).stop();
+			} catch(NullPointerException | ClassCastException e) {
+				throw new IllegalArgumentException("Animated plot '" + arg + "' was not found.");
 			}
 		});
+		
+		SETTING_ANIM_TIME = Settings.insertSetting("plotter.anim_time", 2d);
+	}
+	
+	@Override
+	public int version() {
+		return 2;
 	}
 	
 	@Override
@@ -59,7 +119,7 @@ public class Plotter implements Plugin {
 		Platform.exit();
 	}
 
-	class PlotCommand extends Command {
+	class PlotCommand implements Command {
 		
 		boolean append = false;
 		boolean dynamic = false;
@@ -126,6 +186,7 @@ public class Plotter implements Plugin {
 	public static void main(String[] args) {
 		Calculator.setIOHandler(new IOHandler());
 		Calculator.setErrorHandler(new ErrorHandler());
+		Calculator.setSettingsHandler(new SettingsHandler());
 		new Plotter().run();
 		Calculator.start(args);
 		new Calculator();
