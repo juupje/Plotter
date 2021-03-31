@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.function.Function;
 
 import com.github.juupje.calculator.graph.ValueChangedListener;
-import com.github.juupje.calculator.helpers.Shape;
 import com.github.juupje.calculator.helpers.exceptions.TreeException;
 import com.github.juupje.calculator.main.Calculator;
 import com.github.juupje.calculator.main.Variable;
 import com.github.juupje.calculator.mathobjects.MFunction;
 import com.github.juupje.calculator.mathobjects.MReal;
 import com.github.juupje.calculator.mathobjects.MathObject;
+import com.github.juupje.calculator.mathobjects.Shape;
 import com.github.juupje.plotter.Animation;
 import com.github.juupje.plotter.CartesianAxes;
 import com.github.juupje.plotter.ColorIterator;

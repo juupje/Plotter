@@ -1,10 +1,15 @@
 package com.github.juupje.plotter;
 
+import java.io.IOException;
+
+import org.json.JSONObject;
+
 import com.github.juupje.calculator.commands.Command;
 import com.github.juupje.calculator.commands.Commands;
 import com.github.juupje.calculator.helpers.ErrorHandler;
-import com.github.juupje.calculator.helpers.IOHandler;
-import com.github.juupje.calculator.helpers.Shape;
+import com.github.juupje.calculator.helpers.Tools;
+import com.github.juupje.calculator.helpers.io.IOHandler;
+import com.github.juupje.calculator.helpers.io.JSONReader;
 import com.github.juupje.calculator.main.Calculator;
 import com.github.juupje.calculator.main.Parser;
 import com.github.juupje.calculator.main.Variable;
@@ -15,6 +20,7 @@ import com.github.juupje.calculator.mathobjects.MFunction;
 import com.github.juupje.calculator.mathobjects.MReal;
 import com.github.juupje.calculator.mathobjects.MVector;
 import com.github.juupje.calculator.mathobjects.MathObject;
+import com.github.juupje.calculator.mathobjects.Shape;
 import com.github.juupje.calculator.settings.Setting;
 import com.github.juupje.calculator.settings.Settings;
 import com.github.juupje.calculator.settings.SettingsHandler;
@@ -28,16 +34,16 @@ public class Plotter implements Plugin {
 	
 	@Override
 	public void run() {
-		Commands.insertCommand("plot", new PlotCommand(false, false));
-		Commands.insertCommand("addplot", new PlotCommand(true, false));
-		Commands.insertCommand("dplot", new PlotCommand(false, true));
-		Commands.insertCommand("adddplot", new PlotCommand(true, true));
+		Commands.insertCommand("plt_plot", new PlotCommand(false, false));
+		Commands.insertCommand("plt_add", new PlotCommand(true, false));
+		Commands.insertCommand("plt_dplot", new PlotCommand(false, true));
+		Commands.insertCommand("plt_addd", new PlotCommand(true, true));
 		
-		Commands.insertCommand("delplot", arg -> {
+		Commands.insertCommand("plt_del", arg -> {
 				if(!plotScreen.controller.getSelected().remove(arg))
 					throw new IllegalArgumentException("No known plot in selected pane with name '" + arg + "'");
 			});
-		Commands.insertCommand("selectplot", arg -> {
+		Commands.insertCommand("plt_select", arg -> {
 				int index = 0;
 				try {
 					index = Integer.valueOf(arg);
@@ -54,7 +60,7 @@ public class Plotter implements Plugin {
 					throw new IllegalArgumentException("Can't select plot " + index + ": there are only " + plotScreen.controller.getTabCount() + " plots.");
 				plotScreen.controller.select(index);
 			});
-		Commands.insertCommand("anim", arg -> {
+		Commands.insertCommand("plt_anim", arg -> {
 			String[] args = Parser.getArguments(arg);
 			//check argument length
 			if(!(args.length == 2 || args.length==3))
@@ -77,9 +83,9 @@ public class Plotter implements Plugin {
 				throw new IllegalArgumentException("Variable " + var.getName() + " is not a real scalar.");
 			
 			//find the range of the variable to be animated
-			MathObject mo = new VectorParser(args[1].substring(index+1)).parse().evaluate();
+			MathObject mo = new VectorParser(args[1].substring(index+1)).parse(false).evaluate();
 			if(!(mo instanceof MVector) || ((MVector) mo).size()!=2)
-				throw new IllegalArgumentException("Expected vector of length 2 after '=' in second argument, got " + mo.getClass().getSimpleName());
+				throw new IllegalArgumentException("Expected vector of length 2 after '=' in second argument, got " + Tools.type(mo));
 			MVector v = (MVector) mo;
 			if(!(v.get(0) instanceof MReal) || !(v.get(1) instanceof MReal))
 				throw new IllegalArgumentException("Animation bounds should be real numbers, got " + v.get(0) + " and " + v.get(1));
@@ -97,7 +103,7 @@ public class Plotter implements Plugin {
 			}
 			plotScreen.anim(new Variable(args[0]), varname, begin, end, time);
 		});
-		Commands.insertCommand("stop", arg -> {
+		Commands.insertCommand("plt_stop", arg -> {
 			try {
 				Plot plt = plotScreen.controller.getSelected().getPlot(arg);
 				((Animation) plt).stop();
@@ -106,12 +112,22 @@ public class Plotter implements Plugin {
 			}
 		});
 		
-		SETTING_ANIM_TIME = Settings.insertSetting("plotter.anim_time", 2d);
+		SETTING_ANIM_TIME = Settings.insertSetting("plt.anim_time", 2d);
 	}
 	
 	@Override
 	public int version() {
-		return 2;
+		return 4;
+	}
+	
+	@Override
+	public JSONObject initHelp() {
+		try {
+			return JSONReader.parse(Plotter.class.getResourceAsStream("/com/github/juupje/plotter/files/help.json"));
+		} catch (IOException e) {
+			Calculator.errorHandler.handle("Could not load help file of Plotter.", e);
+		}
+		return null;
 	}
 	
 	@Override
@@ -158,9 +174,9 @@ public class Plotter implements Plugin {
 				plot(var, -8, 8, append, dynamic);
 			} else {
 				if(append)
-					throw new IllegalArgumentException("addplot() expected 1 argument, got " + stringArgs.length);
+					throw new IllegalArgumentException("plt_add()/plt_addd() expected 1 argument, got " + stringArgs.length);
 				else
-					throw new IllegalArgumentException("plot() expected 1 or 3 argument(s), got " + stringArgs.length);				
+					throw new IllegalArgumentException("plt_plot()/plt_plotd() expected 1 or 3 argument(s), got " + stringArgs.length);				
 			}
 		}
 	}
@@ -187,8 +203,9 @@ public class Plotter implements Plugin {
 		Calculator.setIOHandler(new IOHandler());
 		Calculator.setErrorHandler(new ErrorHandler());
 		Calculator.setSettingsHandler(new SettingsHandler());
+		Calculator.parseArgs(args);
 		new Plotter().run();
-		Calculator.start(args);
+		Calculator.start();
 		new Calculator();
 	}
 

@@ -2,11 +2,11 @@ package com.github.juupje.plotter;
 
 import java.util.function.Function;
 
-import com.github.juupje.calculator.helpers.Shape;
 import com.github.juupje.calculator.helpers.exceptions.TreeException;
 import com.github.juupje.calculator.main.Calculator;
 import com.github.juupje.calculator.mathobjects.MFunction;
 import com.github.juupje.calculator.mathobjects.MReal;
+import com.github.juupje.calculator.mathobjects.Shape;
 
 import javafx.animation.AnimationTimer;
 import javafx.scene.paint.Color;
@@ -55,7 +55,7 @@ public class Animation extends Plot {
 
 	private Function<Double, Double> toFunction(MFunction func, String var) {
 			if (func.getParameters().length == 1 && func.shape().equals(Shape.SCALAR)) {
-				final MFunction f = new MFunction(new String[] {func.getParameters()[0], var}, func.getTree(), true);
+				final MFunction f = new MFunction(new String[] {func.getParameters()[0], var}, new Shape[] {new Shape(), new Shape()}, func.getTree(), true);
 				MReal xVal = new MReal(0);
 				return (x -> {
 					try {

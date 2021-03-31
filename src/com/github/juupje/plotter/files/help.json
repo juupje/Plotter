@@ -1,0 +1,60 @@
+{
+    "commands": {
+        "plt_plot": {
+			"syntax": "plt_plot(f, a, b) or plt_plot(f)",
+			"description": "Plots the function f in the domain [a,b] in a new plot pane. If no plot window is currently open, a new one is created. If a and b are not given, the domain [-8,8] is plotted.",
+			"arguments": "f: a variable containing a function. a and b: real scalars",
+			"result": "A new plot in a new pane (and window if none existed yet)"
+		},
+        "plt_add": {
+			"syntax": "plt_add(f)",
+			"description": "Plots the function f in the domain [a,b] in the currently active plot pane. If there is no active pane, a new one is created. If a and b are not given, the domain [-8, 8] is plotted.",
+			"arguments": "f: a variable containing a function.",
+			"result": "A new plot in the active pane"
+		},
+        "plt_dplot": {
+			"syntax": "plt_dplot(f, a, b) or plt_dplot(f)",
+			"description": "Plots the function f similarly to plt_plot(). The plot will be made dynamic (that is, prepared to be animated).",
+			"arguments": "f: a variable contaning a function. a and b: real scalars",
+			"result": "A new plot pane (and window if none existed yet)"
+		},
+        "plt_addd": {
+			"syntax": "plt_addd(f)",
+			"description": "Plots the function f similarly to plt_add(). The plot will be made dynamic (that is, prepared to be animated).",
+			"arguments": "f: a variable containing a function.",
+			"result": "A new plot in the active pane"
+		},
+        "plt_del": {
+			"syntax": "plt_del(f)",
+			"description": "Removes the plot with name f from the active pane.",
+			"arguments": "f: a variable containing an already plotted function.",
+			"result": "-"
+		},
+        "plt_select": {
+			"syntax": "plt_select(n)",
+			"description": "If n is positive, makes the n-th plot pane the active pane. If n is negative, the nth-to-last pane will be activated.",
+			"arguments": "n: a real integer",
+			"result": "-"
+		},
+        "plt_anim": {
+			"syntax": "plt_anim(f, var=[a,b], T) or plt_anim(f, var=[a,b])",
+			"description": "Animates the plot of f by continiously changing the variable 'var' in the range [a,b]. T defines the animation period: the duration of one animation cycle (var starts at a, increases to b and decreases back to a). If T is not given, the value of the setting plt.anim_time is used (default: 2s). For example, defining w=1 and f(x)=sin(w*x), plotting plt_plotd(f, 0, 2pi) and animating plt_anim(f, w=[1, 2pi], 5) will change the angular frequency of f from 1 to 2pi and back every 5 seconds.",
+			"arguments": "f: a variable containing an already plotted function. var: the name of the variable which will be animated. a and b: the interval of values which var will take during an animation cycle. T: the duration of one animation cycle.",
+			"result": "An animated plot"
+		},
+        "plt_stop": {
+			"syntax": "plt_stop(f)",
+			"description": "Stops the animation of f.",
+			"arguments": "f: a variable containing an animated function.",
+			"result": "-"
+		}
+    },
+    "settings": {
+        "plt.anim_time": {
+			"name": "plt.anim_time",
+			"type": "decimal value",
+			"description": "Defines the default period of an animation cycle (see help(plt_anim)) in seconds.",
+			"default": "2"
+		}
+    }
+}
