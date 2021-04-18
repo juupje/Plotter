@@ -3,8 +3,8 @@ package com.github.juupje.plotter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.juupje.calculator.helpers.Printer;
 import com.github.juupje.calculator.main.Calculator;
+import com.github.juupje.calculator.printer.Printer;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

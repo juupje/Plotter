@@ -31,6 +31,7 @@ public class Plotter implements Plugin {
 
 	private static PlotScreen plotScreen;
 	public static Setting SETTING_ANIM_TIME;
+	private static final int VERSION_ID = 5;
 	
 	@Override
 	public void run() {
@@ -117,7 +118,7 @@ public class Plotter implements Plugin {
 	
 	@Override
 	public int version() {
-		return 4;
+		return VERSION_ID;
 	}
 	
 	@Override
